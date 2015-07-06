@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ro.fortsoft.pippo.demo.integration</groupId>
+    <artifactId>ui-tests</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+
+    <properties>
+        <phantomjs.binary.path>${project.basedir}/node_modules/phantomjs/lib/phantom/bin/phantomjs</phantomjs.binary.path>
+        <docker.output.dir>${project.build.directory}/docker_output_dir</docker.output.dir>
+        <webapp.deploy.context>pippo</webapp.deploy.context>
+        <war.file.location>pippo-demo.war</war.file.location>
+
+        <jsoup.version>1.7.3</jsoup.version>
+        <compiler.version>1.7</compiler.version>
+        <im4java.version>1.4.0</im4java.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.detro</groupId>
+            <artifactId>phantomjsdriver</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.im4java</groupId>
+            <artifactId>im4java</artifactId>
+            <version>${im4java.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>start-tomcat-docker</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>pre-integration-test</phase>
+                        <configuration>
+                            <environmentVariables>
+                                <DOCKER_IMAGE_NAME>balamaci/tomcat7</DOCKER_IMAGE_NAME>
+                                <DOCKER_OUTPUT_DIR>${docker.output.dir}</DOCKER_OUTPUT_DIR>
+                            </environmentVariables>
+                            <executable>${project.basedir}/scripts/start-docker-tomcat.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <id>read-container-properties</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${docker.output.dir}/container.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven2-plugin</artifactId>
+                <version>1.4.11</version>
+                <configuration>
+                    <container>
+                        <containerId>tomcat7x</containerId>
+                        <type>remote</type>
+                    </container>
+                    <configuration>
+                        <type>runtime</type>
+                        <properties>
+                            <cargo.hostname>${CONTAINER_IP}</cargo.hostname>
+                            <cargo.servlet.port>8080</cargo.servlet.port>
+                            <cargo.remote.username>admin</cargo.remote.username>
+                            <cargo.remote.password>admin</cargo.remote.password>
+                        </properties>
+                    </configuration>
+                    <deployer>
+                        <type>remote</type>
+                    </deployer>
+                    <deployables>
+                        <deployable>
+                            <type>war</type>
+                            <location>${war.file.location}</location>
+                            <properties>
+                                <context>${webapp.deploy.context}</context>
+                            </properties>
+                        </deployable>
+                    </deployables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>war-deploy</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18.1</version>
+                <configuration>
+                    <skipTests>true</skipTests> <!-- we don't do the unit tests here -->
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.18.1</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <phantomjs.binary.path>${phantomjs.binary.path}</phantomjs.binary.path>
+                        <container.host>${CONTAINER_IP}:8080</container.host>
+                        <webapp.deploy.context>${webapp.deploy.context}</webapp.deploy.context>
+                        <webdriver.screenshot.path>${build.directory}/screenshot</webdriver.screenshot.path>
+                    </systemPropertyVariables>
+                    <includes>
+                        <include>**/Test*.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>failsafe-integration-tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+
+                </dependencies>
+            </plugin>
+
+            <!-- Stoping the Docker container -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <id>stop-tomcat-docker</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>post-integration-test</phase>
+                        <configuration>
+                            <environmentVariables>
+                                <CONTAINER_ID>${CONTAINER_ID}</CONTAINER_ID>
+                            </environmentVariables>
+                            <executable>${project.basedir}/scripts/stop-docker-tomcat.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
