@@ -25,6 +25,7 @@ public class TestCrudNgDemoAppUI extends PhantomJsWebdriverTest {
             }
         });
 
+        takeScreenshot("LoginPanel");
         fillUserLoginData(driver);
 
         wait.until(new Function<WebDriver, Boolean>() {
