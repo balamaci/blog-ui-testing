@@ -28,7 +28,7 @@ public class PhantomJsBrowser extends Browser {
         prefs.enable(LogType.DRIVER, Level.INFO);
         capabilities.setCapability(CapabilityType.LOGGING_PREFS, prefs);
 
-        start(new PhantomJSDriver(phantomJSDriverService, capabilities));
+        start(new PhantomJSDriver(PhantomJSDriverService.createDefaultService(), capabilities));
     }
 
 
