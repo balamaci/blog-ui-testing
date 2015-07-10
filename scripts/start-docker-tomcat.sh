@@ -26,3 +26,5 @@ echo "CONTAINER_ID=${container_id}"$'\r' > ${docker_container_property_file}
 echo "CONTAINER_IP=${container_ip}" >> ${docker_container_property_file}
 
 tomcat_log="${docker_tomcat_log_dir}/catalina.$(date +%Y-%m-%d).log"
+
+sleep 10
