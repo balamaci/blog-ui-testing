@@ -16,6 +16,8 @@
         <webapp.deploy.context>pippo</webapp.deploy.context>
         <war.file.location>pippo-demo.war</war.file.location>
 
+        <screenshotUpdateReferences>true</screenshotUpdateReferences>
+
         <jsoup.version>1.7.3</jsoup.version>
         <compiler.version>1.7</compiler.version>
         <im4java.version>1.4.0</im4java.version>
@@ -24,6 +26,8 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+
+        <java.version>1.8</java.version>
     </properties>
 
     <dependencies>
@@ -208,6 +212,17 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 </project>
