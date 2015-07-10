@@ -1,11 +1,13 @@
 package ro.fortsoft.pippo.demo.integration;
 
-import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.List;
 
 /**
  * @author Serban Balamaci
@@ -18,26 +20,20 @@ public class TestCrudNgDemoAppUI extends PhantomJsWebdriverTest {
 
     @Test public void
     forAuthorizedUserLoginSuccessful() throws Exception {
+        List<ScreenshotDiffException> differentScreen = Lists.newArrayList();
+
         WebDriver driver = getDriver();
         driver.get(getBaseUrl() + "login");
 
         WebDriverWait wait = new WebDriverWait(driver, 5);
 
-        wait.until(new Function<WebDriver, Boolean>() {
-            public Boolean apply(WebDriver webDriver) {
-                return webDriver.findElement(By.name("username")) != null;
-            }
-        });
+        wait.until((WebDriver webDriver) -> webDriver.findElement(By.name("username")) != null);
+        takeScreenshotAndCompare("LoginPanel").ifPresent(differentScreen::add);
 
-        takeScreenshotAndCompare("LoginPanel");
         fillUserLoginData(driver);
 
-        wait.until(new Function<WebDriver, Boolean>() {
-            public Boolean apply(WebDriver webDriver) {
-                return webDriver.getTitle().equals("Contacts");
-            }
-        });
-        takeScreenshotAndCompare("ContactsPanel");
+        wait.until((WebDriver webDriver) -> webDriver.getTitle().equals("Contacts"));
+        takeScreenshotAndCompare("ContactsPanel").ifPresent(differentScreen::add);
     }
 
     private void fillUserLoginData(WebDriver driver) {

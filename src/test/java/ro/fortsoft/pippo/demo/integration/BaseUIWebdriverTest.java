@@ -17,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static ro.fortsoft.pippo.demo.integration.util.UrlUtil.appendSlashOnRightSide;
 
@@ -48,13 +51,12 @@ public abstract class BaseUIWebdriverTest {
         serverUrl = "http://" + System.getProperty("container.host");
         appContext = System.getProperty("webapp.deploy.context");
 
-        Config conf = ConfigFactory.load();
+        updateReferenceImages = Boolean.valueOf(System.getProperty("screenshot.updateReferences"));
 
+        Config conf = ConfigFactory.load();
         screenshotPath = Paths.get(conf.getString("screenshot.path"));
         screenshotReferencePath = Paths.get(conf.getString("screenshot.referencePath"));
         screenshotDiffPath = Paths.get(conf.getString("screenshot.diffPath"));
-
-        updateReferenceImages = conf.getBoolean("screenshot.updateReferences");
     }
 
     public abstract Browser initBrowser();
@@ -75,14 +77,12 @@ public abstract class BaseUIWebdriverTest {
         return browser.getDriver();
     }
 
-    public Path takeScreenshot(String scenarioName, boolean isReference) throws Exception {
-        String screenshotFilename = scenarioName;
-
+    private Path takeScreenshot(String scenarioName, boolean isReference) throws Exception {
         Path currentScreenshotPath;
         if (isReference) {
             currentScreenshotPath = getScreenshotReferencePath(scenarioName);
         } else {
-            currentScreenshotPath = screenshotPath.resolve(screenshotFilename + ".png");
+            currentScreenshotPath = getCurrentScreenshotPath(scenarioName);
         }
 
         Path screen = ((TakesScreenshot) browser.getDriver()).getScreenshotAs(OutputType.FILE).toPath();
@@ -92,14 +92,28 @@ public abstract class BaseUIWebdriverTest {
     }
 
     private Path getScreenshotReferencePath(String scenarioName) {
-        return screenshotReferencePath.resolve(scenarioName + ".ref.png");
+        return screenshotReferencePath.resolve(getScreenshotBaseFilename(scenarioName) + ".ref.png");
     }
 
     private Path getScreenshotDiffPath(String scenarioName) {
-        return screenshotDiffPath.resolve(scenarioName + ".diff.png");
+        return screenshotDiffPath.resolve(getScreenshotBaseFilename(scenarioName) + ".diff.png");
     }
 
-    public void takeScreenshotAndCompare(String scenarioName) throws Exception {
+    private Path getCurrentScreenshotPath(String scenarioName) {
+        return screenshotPath.resolve(getScreenshotBaseFilename(scenarioName) + ".png");
+    }
+
+    private String getScreenshotBaseFilename(String scenarioName) {
+        return scenarioName + "_" + dimension.getWidth() + "_" + dimension.getHeight();
+    }
+
+    /**
+     * Takes a screenshot and returns an
+     * @param scenarioName
+     * @return
+     * @throws Exception
+     */
+    public Optional<ScreenshotDiffException> takeScreenshotAndCompare(String scenarioName) throws Exception {
         if(updateReferenceImages) {
             takeScreenshot(scenarioName, true);
         } else {
@@ -109,9 +123,17 @@ public abstract class BaseUIWebdriverTest {
                 Path imageDiff = getScreenshotDiffPath(scenarioName);
                 ImageUtil.createImageDiff(screenshot, reference, imageDiff);
 
-                throw new ScreenshotDiffException(scenarioName);
+                return Optional.of(new ScreenshotDiffException(scenarioName));
             }
         }
+        return Optional.empty();
+    }
+
+    public static <T> List<T> collect(Optional<T> option, List<T> previousValues) {
+        previousValues.addAll(option.
+                                  map(Collections::singletonList).
+                                  orElse(Collections.emptyList()));
+        return previousValues;
     }
 
     @AfterClass
