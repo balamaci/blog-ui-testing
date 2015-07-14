@@ -1,18 +1,22 @@
 package ro.fortsoft.pippo.demo.integration;
 
+import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import ro.fortsoft.pippo.demo.integration.browser.Browser;
 import ro.fortsoft.pippo.demo.integration.util.ImageUtil;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,6 +45,9 @@ public abstract class BaseUIWebdriverTest {
     private static Boolean updateReferenceImages;
 
     public static Dimension DIMENSION_800x600 = new Dimension(800, 600);
+    public static Dimension DIMENSION_1024x768 = new Dimension(1024, 768);
+
+    List<ScreenshotDiffException> differentScreen;
 
     public BaseUIWebdriverTest(Dimension dimension) {
         this.dimension = dimension;
@@ -63,6 +70,8 @@ public abstract class BaseUIWebdriverTest {
 
     @Before
     public void before() {
+        differentScreen = Lists.newArrayList();
+
         browser = initBrowser();
 
         browser.changeWindowSize(dimension);
@@ -77,7 +86,7 @@ public abstract class BaseUIWebdriverTest {
         return browser.getDriver();
     }
 
-    private Path takeScreenshot(String scenarioName, boolean isReference) throws Exception {
+    private Path takeScreenshot(String scenarioName, boolean isReference) {
         Path currentScreenshotPath;
         if (isReference) {
             currentScreenshotPath = getScreenshotReferencePath(scenarioName);
@@ -86,8 +95,11 @@ public abstract class BaseUIWebdriverTest {
         }
 
         Path screen = ((TakesScreenshot) browser.getDriver()).getScreenshotAs(OutputType.FILE).toPath();
-        Files.copy(screen, currentScreenshotPath, StandardCopyOption.REPLACE_EXISTING);
-
+        try {
+            Files.copy(screen, currentScreenshotPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving image", e);
+        }
         return currentScreenshotPath;
     }
 
@@ -109,17 +121,18 @@ public abstract class BaseUIWebdriverTest {
 
     /**
      * Takes a screenshot and returns an
+     *
      * @param scenarioName
      * @return
      * @throws Exception
      */
-    public Optional<ScreenshotDiffException> takeScreenshotAndCompare(String scenarioName) throws Exception {
-        if(updateReferenceImages) {
+    private Optional<ScreenshotDiffException> takeScreenshotAndCompare(String scenarioName) {
+        if (updateReferenceImages) {
             takeScreenshot(scenarioName, true);
         } else {
             Path screenshot = takeScreenshot(scenarioName, false);
             Path reference = getScreenshotReferencePath(scenarioName);
-            if(! ImageUtil.isEqual(screenshot, reference)) {
+            if (!ImageUtil.isEqual(screenshot, reference)) {
                 Path imageDiff = getScreenshotDiffPath(scenarioName);
                 ImageUtil.createImageDiff(screenshot, reference, imageDiff);
 
@@ -127,6 +140,10 @@ public abstract class BaseUIWebdriverTest {
             }
         }
         return Optional.empty();
+    }
+
+    protected void takeScreenshotCompareAndCollect(String scenarioName) {
+        takeScreenshotAndCompare(scenarioName).ifPresent(differentScreen::add);
     }
 
     public static <T> List<T> collect(Optional<T> option, List<T> previousValues) {
@@ -145,4 +162,16 @@ public abstract class BaseUIWebdriverTest {
         return appendSlashOnRightSide(baseUrl);
     }
 
+    protected void navigateTo(String pageName) {
+        getDriver().get(getBaseUrl() + pageName);
+    }
+
+    protected void waitForElementWithName(String name, long timeoutSeconds) {
+        WebDriverWait wait = new WebDriverWait(getDriver(), timeoutSeconds);
+        wait.until((WebDriver webDriver) -> webDriver.findElement(By.name(name)) != null);
+    }
+
+    protected void waitForElementWithName(String name) {
+        waitForElementWithName(name, 5);
+    }
 }
