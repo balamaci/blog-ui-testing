@@ -10,7 +10,6 @@ import org.junit.BeforeClass;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import ro.fortsoft.pippo.demo.integration.browser.Browser;
@@ -58,24 +57,23 @@ public abstract class BaseUIWebdriverTest {
         serverUrl = "http://" + System.getProperty("container.host");
         appContext = System.getProperty("webapp.deploy.context");
 
-        updateReferenceImages = Boolean.valueOf(System.getProperty("screenshot.updateReferences"));
-
+        updateReferenceImages = Boolean.valueOf(System.getProperty("screenshotUpdateReferences"));
+        System.out.println("******** UPDATE " + updateReferenceImages);
         Config conf = ConfigFactory.load();
         screenshotPath = Paths.get(conf.getString("screenshot.path"));
         screenshotReferencePath = Paths.get(conf.getString("screenshot.referencePath"));
         screenshotDiffPath = Paths.get(conf.getString("screenshot.diffPath"));
     }
 
-    public abstract Browser initBrowser();
-
     @Before
     public void before() {
         differentScreen = Lists.newArrayList();
-
-        browser = initBrowser();
+        this.browser = initBrowser();
 
         browser.changeWindowSize(dimension);
     }
+
+    protected abstract Browser initBrowser();
 
     @After
     public void after() {
@@ -94,7 +92,7 @@ public abstract class BaseUIWebdriverTest {
             currentScreenshotPath = getCurrentScreenshotPath(scenarioName);
         }
 
-        Path screen = ((TakesScreenshot) browser.getDriver()).getScreenshotAs(OutputType.FILE).toPath();
+        Path screen = browser.getDriver().getScreenshotAs(OutputType.FILE).toPath();
         try {
             Files.copy(screen, currentScreenshotPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {

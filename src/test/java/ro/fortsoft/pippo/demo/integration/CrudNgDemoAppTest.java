@@ -16,16 +16,18 @@ import java.util.Collection;
  * @author Serban Balamaci
  */
 @RunWith(Parameterized.class)
-public class TestCrudNgDemoAppUI extends PhantomJsWebdriverTest {
-
-    public TestCrudNgDemoAppUI(Dimension dimension) {
-        super(dimension);
-    }
+public abstract class CrudNgDemoAppTest extends BaseUIWebdriverTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> getDimensions() {
-        return Arrays.asList(new Object[][] { {DIMENSION_800x600}, {DIMENSION_1024x768} });
+        return Arrays.asList(new Object[][] {
+                {DIMENSION_800x600}, {DIMENSION_1024x768}});
     }
+
+    public CrudNgDemoAppTest(Dimension dimension) {
+        super(dimension);
+    }
+
 
     @Test public void
     loginPage() throws Exception {

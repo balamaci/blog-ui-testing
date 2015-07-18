@@ -5,16 +5,16 @@ import ro.fortsoft.pippo.demo.integration.browser.Browser;
 import ro.fortsoft.pippo.demo.integration.browser.PhantomJsBrowser;
 
 /**
- * @author sbalamaci
+ * @author Serban Balamaci
  */
-public class PhantomJsWebdriverTest extends BaseUIWebdriverTest {
+public class TestPhantomJsCrudNgDemoApp extends CrudNgDemoAppTest {
 
-    public PhantomJsWebdriverTest(Dimension dimension) {
+    public TestPhantomJsCrudNgDemoApp(Dimension dimension) {
         super(dimension);
     }
 
     @Override
-    public Browser initBrowser() {
+    protected Browser initBrowser() {
         return new PhantomJsBrowser();
     }
 }
