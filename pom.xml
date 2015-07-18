@@ -171,8 +171,9 @@
                         <phantomjs.binary.path>${phantomjs.binary.path}</phantomjs.binary.path>
                         <container.host>${CONTAINER_IP}:8080</container.host>
                         <webapp.deploy.context>${webapp.deploy.context}</webapp.deploy.context>
-                        <webdriver.screenshot.path>${build.directory}/screenshot</webdriver.screenshot.path>
+                        <screenshotUpdateReferences>${screenshotUpdateReferences}</screenshotUpdateReferences>
                     </systemPropertyVariables>
+
                     <includes>
                         <include>**/Test*.java</include>
                     </includes>
