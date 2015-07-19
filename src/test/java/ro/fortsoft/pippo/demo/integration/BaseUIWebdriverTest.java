@@ -20,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +40,7 @@ public abstract class BaseUIWebdriverTest {
     private static Path screenshotPath;
     private static Path screenshotDiffPath;
 
-    private static Boolean updateReferenceImages;
+    private static Boolean flagUpdateReferenceScreenshots;
 
     public static Dimension DIMENSION_800x600 = new Dimension(800, 600);
     public static Dimension DIMENSION_1024x768 = new Dimension(1024, 768);
@@ -57,8 +56,8 @@ public abstract class BaseUIWebdriverTest {
         serverUrl = "http://" + System.getProperty("container.host");
         appContext = System.getProperty("webapp.deploy.context");
 
-        updateReferenceImages = Boolean.valueOf(System.getProperty("screenshotUpdateReferences"));
-        System.out.println("******** UPDATE " + updateReferenceImages);
+        flagUpdateReferenceScreenshots = Boolean.valueOf(System.getProperty("flagUpdateReferenceScreenshots"));
+
         Config conf = ConfigFactory.load();
         screenshotPath = Paths.get(conf.getString("screenshot.path"));
         screenshotReferencePath = Paths.get(conf.getString("screenshot.referencePath"));
@@ -122,10 +121,9 @@ public abstract class BaseUIWebdriverTest {
      *
      * @param scenarioName
      * @return
-     * @throws Exception
      */
     private Optional<ScreenshotDiffException> takeScreenshotAndCompare(String scenarioName) {
-        if (updateReferenceImages) {
+        if (flagUpdateReferenceScreenshots) {
             takeScreenshot(scenarioName, true);
         } else {
             Path screenshot = takeScreenshot(scenarioName, false);
@@ -144,12 +142,6 @@ public abstract class BaseUIWebdriverTest {
         takeScreenshotAndCompare(scenarioName).ifPresent(differentScreen::add);
     }
 
-    public static <T> List<T> collect(Optional<T> option, List<T> previousValues) {
-        previousValues.addAll(option.
-                                  map(Collections::singletonList).
-                                  orElse(Collections.emptyList()));
-        return previousValues;
-    }
 
     @AfterClass
     public static void globalTearDown() {

@@ -16,7 +16,7 @@
         <webapp.deploy.context>pippo</webapp.deploy.context>
         <war.file.location>pippo-demo.war</war.file.location>
 
-        <screenshotUpdateReferences>true</screenshotUpdateReferences>
+        <flagUpdateReferenceScreenshots>true</flagUpdateReferenceScreenshots>
 
         <jsoup.version>1.7.3</jsoup.version>
         <compiler.version>1.7</compiler.version>
@@ -171,7 +171,7 @@
                         <phantomjs.binary.path>${phantomjs.binary.path}</phantomjs.binary.path>
                         <container.host>${CONTAINER_IP}:8080</container.host>
                         <webapp.deploy.context>${webapp.deploy.context}</webapp.deploy.context>
-                        <screenshotUpdateReferences>${screenshotUpdateReferences}</screenshotUpdateReferences>
+                        <flagUpdateReferenceScreenshots>${flagUpdateReferenceScreenshots}</flagUpdateReferenceScreenshots>
                     </systemPropertyVariables>
 
                     <includes>
