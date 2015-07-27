@@ -1,18 +1,19 @@
 package ro.fortsoft.pippo.demo.integration;
 
-import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import ro.fortsoft.pippo.demo.integration.browser.Browser;
+import ro.fortsoft.pippo.demo.integration.rule.ThrowErrorOnDiffScreensRule;
 import ro.fortsoft.pippo.demo.integration.util.ImageUtil;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Optional;
 
 import static ro.fortsoft.pippo.demo.integration.util.UrlUtil.appendSlashOnRightSide;
@@ -45,11 +45,14 @@ public abstract class BaseUIWebdriverTest {
     public static Dimension DIMENSION_800x600 = new Dimension(800, 600);
     public static Dimension DIMENSION_1024x768 = new Dimension(1024, 768);
 
-    List<ScreenshotDiffException> differentScreen;
+    @Rule
+    private ThrowErrorOnDiffScreensRule throwErrorOnDiffScreensRule = new ThrowErrorOnDiffScreensRule();
 
     public BaseUIWebdriverTest(Dimension dimension) {
         this.dimension = dimension;
     }
+
+
 
     @BeforeClass
     public static void init() throws Exception {
@@ -66,8 +69,7 @@ public abstract class BaseUIWebdriverTest {
 
     @Before
     public void before() {
-        differentScreen = Lists.newArrayList();
-        this.browser = initBrowser();
+        browser = initBrowser();
 
         browser.changeWindowSize(dimension);
     }
@@ -117,10 +119,12 @@ public abstract class BaseUIWebdriverTest {
     }
 
     /**
-     * Takes a screenshot and returns an
-     *
-     * @param scenarioName
-     * @return
+     * Takes a screenshot and returns an Optional ScreenshotDiffException
+     * if the screens are different from the reference.
+     * Considers the flagUpdateReferenceScreenshots which can be set at runtime to just
+     * update the printscreens instead of
+     * @param scenarioName how the file will be called
+     * @return Optional ScreenshotDiffException
      */
     private Optional<ScreenshotDiffException> takeScreenshotAndCompare(String scenarioName) {
         if (flagUpdateReferenceScreenshots) {
@@ -139,7 +143,7 @@ public abstract class BaseUIWebdriverTest {
     }
 
     protected void takeScreenshotCompareAndCollect(String scenarioName) {
-        takeScreenshotAndCompare(scenarioName).ifPresent(differentScreen::add);
+        takeScreenshotAndCompare(scenarioName).ifPresent(throwErrorOnDiffScreensRule::addScreenDiffException);
     }
 
 
