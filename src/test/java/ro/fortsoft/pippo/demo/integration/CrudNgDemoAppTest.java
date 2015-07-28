@@ -33,7 +33,7 @@ public abstract class CrudNgDemoAppTest extends BaseUIWebdriverTest {
     loginPage() throws Exception {
         navigateTo("login");
         waitForElementWithName("username");
-        takeScreenshotCompareAndCollect("LoginPage");
+        takeScreenshotCompareAndCollectDiff("LoginPage");
     }
 
     @Test public void
@@ -43,7 +43,7 @@ public abstract class CrudNgDemoAppTest extends BaseUIWebdriverTest {
         WebDriverWait wait = new WebDriverWait(getDriver(), 5);
         wait.until((WebDriver webDriver) -> webDriver.getTitle().equals("Contacts"));
 
-        takeScreenshotCompareAndCollect("ContactsPage");
+        takeScreenshotCompareAndCollectDiff("ContactsPage");
     }
 
     private void login() {

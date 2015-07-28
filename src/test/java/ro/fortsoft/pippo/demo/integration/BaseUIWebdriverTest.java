@@ -123,6 +123,15 @@ public abstract class BaseUIWebdriverTest {
     }
 
     /**
+     * Takes a printscreen and adds it to the list of screen diffs
+     *
+     * @param scenarioName scenarioName
+     */
+    protected void takeScreenshotCompareAndCollectDiff(String scenarioName) {
+        takeScreenshotAndCompare(scenarioName).ifPresent(throwErrorOnDiffScreensRule::addScreenDiff);
+    }
+
+    /**
      * Takes a screenshot and returns an Optional {@link ScreenshotDiff}
      * if the screens are different from the reference.
      *
@@ -147,14 +156,6 @@ public abstract class BaseUIWebdriverTest {
         return Optional.empty();
     }
 
-    /**
-     * Takes a printscreen and adds it to the list of screen diffs
-     *
-     * @param scenarioName scenarioName
-     */
-    protected void takeScreenshotCompareAndCollect(String scenarioName) {
-        takeScreenshotAndCompare(scenarioName).ifPresent(throwErrorOnDiffScreensRule::addScreenDiffException);
-    }
 
 
     @AfterClass
