@@ -14,6 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import ro.fortsoft.pippo.demo.integration.browser.Browser;
 import ro.fortsoft.pippo.demo.integration.rule.ThrowErrorOnDiffScreensRule;
+import ro.fortsoft.pippo.demo.integration.screenshot.ScreenshotDiff;
 import ro.fortsoft.pippo.demo.integration.util.ImageUtil;
 
 import java.io.IOException;
@@ -26,6 +27,9 @@ import java.util.Optional;
 import static ro.fortsoft.pippo.demo.integration.util.UrlUtil.appendSlashOnRightSide;
 
 /**
+ * Base class for all UI WebDriver tests that provides the functionality of taking
+ * printscreens
+ *
  * @author Serban Balamaci
  */
 public abstract class BaseUIWebdriverTest {
@@ -46,7 +50,7 @@ public abstract class BaseUIWebdriverTest {
     public static Dimension DIMENSION_1024x768 = new Dimension(1024, 768);
 
     @Rule
-    private ThrowErrorOnDiffScreensRule throwErrorOnDiffScreensRule = new ThrowErrorOnDiffScreensRule();
+    public ThrowErrorOnDiffScreensRule throwErrorOnDiffScreensRule = new ThrowErrorOnDiffScreensRule();
 
     public BaseUIWebdriverTest(Dimension dimension) {
         this.dimension = dimension;
@@ -119,14 +123,15 @@ public abstract class BaseUIWebdriverTest {
     }
 
     /**
-     * Takes a screenshot and returns an Optional ScreenshotDiffException
+     * Takes a screenshot and returns an Optional {@link ScreenshotDiff}
      * if the screens are different from the reference.
+     *
      * Considers the flagUpdateReferenceScreenshots which can be set at runtime to just
-     * update the printscreens instead of
+     * update the printscreens instead of creating a diff image and return a diff
      * @param scenarioName how the file will be called
-     * @return Optional ScreenshotDiffException
+     * @return Optional {@link ScreenshotDiff}
      */
-    private Optional<ScreenshotDiffException> takeScreenshotAndCompare(String scenarioName) {
+    private Optional<ScreenshotDiff> takeScreenshotAndCompare(String scenarioName) {
         if (flagUpdateReferenceScreenshots) {
             takeScreenshot(scenarioName, true);
         } else {
@@ -136,12 +141,17 @@ public abstract class BaseUIWebdriverTest {
                 Path imageDiff = getScreenshotDiffPath(scenarioName);
                 ImageUtil.createImageDiff(screenshot, reference, imageDiff);
 
-                return Optional.of(new ScreenshotDiffException(scenarioName));
+                return Optional.of(new ScreenshotDiff(scenarioName, dimension));
             }
         }
         return Optional.empty();
     }
 
+    /**
+     * Takes a printscreen and adds it to the list of screen diffs
+     *
+     * @param scenarioName scenarioName
+     */
     protected void takeScreenshotCompareAndCollect(String scenarioName) {
         takeScreenshotAndCompare(scenarioName).ifPresent(throwErrorOnDiffScreensRule::addScreenDiffException);
     }
@@ -151,13 +161,13 @@ public abstract class BaseUIWebdriverTest {
     public static void globalTearDown() {
     }
 
-    public String getBaseUrl() {
+    public String getWebAppBaseUrl() {
         String baseUrl = appendSlashOnRightSide(serverUrl) + appContext;
         return appendSlashOnRightSide(baseUrl);
     }
 
     protected void navigateTo(String pageName) {
-        getDriver().get(getBaseUrl() + pageName);
+        getDriver().get(getWebAppBaseUrl() + pageName);
     }
 
     protected void waitForElementWithName(String name, long timeoutSeconds) {
