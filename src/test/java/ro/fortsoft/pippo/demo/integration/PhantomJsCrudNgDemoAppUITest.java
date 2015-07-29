@@ -7,9 +7,9 @@ import ro.fortsoft.pippo.demo.integration.browser.PhantomJsBrowser;
 /**
  * @author Serban Balamaci
  */
-public class TestPhantomJsCrudNgDemoApp extends CrudNgDemoAppTest {
+public class PhantomJsCrudNgDemoAppUITest extends CrudNgDemoAppTest {
 
-    public TestPhantomJsCrudNgDemoApp(Dimension dimension) {
+    public PhantomJsCrudNgDemoAppUITest(Dimension dimension) {
         super(dimension);
     }
 
