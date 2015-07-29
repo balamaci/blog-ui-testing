@@ -19,10 +19,12 @@ public class ThrowErrorOnDiffScreensRule extends TestWatcher {
 
     private List<ScreenshotDiff> differentScreen = Lists.newArrayList();
 
+    @Override
     protected void starting(Description description) {
         differentScreen.clear();
     }
 
+    @Override
     protected void finished(Description description) {
         if(! differentScreen.isEmpty()) {
             throw new ScreenshotDiffsException(differentScreen);
