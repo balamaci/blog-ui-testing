@@ -101,7 +101,7 @@ public abstract class BaseUIWebdriverTest {
         try {
             Files.copy(screen, currentScreenshotPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new RuntimeException("Error saving image", e);
+            throw new RuntimeException(String.format("Error saving image path=%s",currentScreenshotPath.toString()), e);
         }
         return currentScreenshotPath;
     }
