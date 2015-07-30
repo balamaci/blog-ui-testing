@@ -175,7 +175,7 @@
                     </systemPropertyVariables>
 
                     <includes>
-                        <include>**/Test*.java</include>
+                        <include>**/**UITest.java</include>
                     </includes>
                 </configuration>
                 <executions>
