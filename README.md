@@ -2,7 +2,7 @@
 
 Sources for the [blog article](http://balamaci.ro/visual-testing-automation/) in which we propose a solution for the automatization of visual testing a web application.
 
-We build upon the previous [article]() of **deploying a .war file of a web application inside a generic Tomcat web server 
+We build upon the previous [article](http://balamaci.ro/continous-integration-with-jenkins-docker-ansible-webdriver/) of **deploying a .war file of a web application inside a generic Tomcat web server 
 deployed into a docker container** and running integration tests all of this as steps of a maven project.
 
 We propose on **using WebDriver capabilities to take printscreens of key points in the application** and use those as 
@@ -16,6 +16,8 @@ We use ImageMagick's external library(ran through **im4java** wrapper library) t
 I've used as example the AngularJs demo web app of the [pippo](https://github.com/decebals/pippo) framework.
 **pippo-demo.war** our web app that we'll be testing is already present inside the project as to be easier to try out the demo. 
 In our real life scenario the war file would be produced by Jenkins in a separate job.
+
+Test files are found under the [test](https://github.com/balamaci/blog-ui-testing/tree/master/src/test) dir.
 
 ## Prerequisites to running yourself locally  
   
